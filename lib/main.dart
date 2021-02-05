@@ -1,6 +1,8 @@
+import 'package:cryptem_app/service_locator.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+  setUpLocator();
   runApp(MyApp());
 }
 
