@@ -1,3 +1,4 @@
+import 'package:cryptem_app/chats/message_room_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -84,18 +85,24 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                     child: ListView.builder(
                       itemCount: items.length + 8,
                       itemBuilder: (context,index){
-                        return Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black12,width: 2.0)
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.black26,
+                        return InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageRoomScreen()),);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black12,width: 2.0),
+                              borderRadius: BorderRadius.circular(10)
                             ),
-                            trailing: Text("$index"),
-                            title: Text("My name$index"),
-                            subtitle: Text("07090909090"),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Colors.black26,
+                              ),
+                              trailing: Text("$index"),
+                              title: Text("My name$index"),
+                              subtitle: Text("07090909090"),
+                            ),
                           ),
                         );
                       }
