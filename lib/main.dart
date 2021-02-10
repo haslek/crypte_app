@@ -1,3 +1,4 @@
+import 'package:cryptem_app/auth/login.dart';
 import 'package:cryptem_app/chats/message_dashboard.dart';
 import 'package:cryptem_app/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MessageDashboardScreen(),
+      home: LoginScreen(),
     );
   }
 }
