@@ -100,7 +100,7 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                         if(snapshot.hasData){
                           Map<String,dynamic> data = snapshot.data;
                           if(data['type'] == "your rooms"){
-                            print(data['data']);
+                            userRooms.addAll(data['data']);
                           }
                         }
                         return ListView.builder(
@@ -125,9 +125,9 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                                       radius: 60,
                                       backgroundColor: Colors.black26,
                                     ),
-                                    trailing: Text("$index"),
-                                    title: Text("My name$index"),
-                                    subtitle: Text("07090909090"),
+                                    trailing: Text(userRooms[index].roomType),
+                                    title: Text(userRooms[index].roomName),
+                                    subtitle: Text(userRooms[index].roomType),
                                   ),
                                 ),
                               ),

@@ -33,6 +33,7 @@ dependencies:
   font_awesome_flutter: ^8.11.0
   http:
   shared_preferences: ^0.5.12+4
+  intl: ^0.16.1
 
 dev_dependencies:
   flutter_test:

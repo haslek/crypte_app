@@ -13,6 +13,15 @@ class MessageRoomScreen extends StatefulWidget {
 
 class _MessageRoomScreenState extends State<MessageRoomScreen> {
   SocketService socketService = GetIt.instance<SocketService>();
+  final _textController = TextEditingController();
+  List<RoomMessages> rMessages = [];
+  String nMessage;
+  @override
+  void initState(){
+    super.initState();
+    rMessages = widget.room.messages;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,10 +40,21 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: StreamBuilder<Object>(
+                child: StreamBuilder<Map<String,dynamic>>(
                   stream: socketService.getResponse,
                   builder: (context, snapshot) {
-                    return Center(child: Text("hello"),);
+                    if(snapshot.hasData){
+                      Map<String,dynamic> data = snapshot.data;
+                      if(data['type'] == "room messages" && data['room_id'] == widget.room.roomId){
+                        rMessages.addAll(data['messages']);
+                      }
+                    }
+                    return ListView.builder(
+                      itemCount: rMessages.length,
+                      itemBuilder: (context,index){
+                        return Text(rMessages[index].message);
+                      },
+                    );
                   }
                 ),
               ),
@@ -45,9 +65,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(child: TextField(
-                        onChanged: (value){
-
-                        },
+                        controller: _textController,
                         maxLines: 10,
                         minLines: 1,
                         decoration: InputDecoration(
@@ -74,12 +92,18 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                         ),
                       )),
                       RawMaterialButton(
-                        onPressed: null,
+                        onPressed: (){
+                          RoomMessages newRoomMessage = RoomMessages(message: _textController.text,groupId: widget.room.roomId);
+                          setState(() {
+                            rMessages.add(newRoomMessage);
+                            // print(newRoomMessage.message);
+                            _textController.text = '';
+                          });
+                        },
                         elevation: 2.0,
                         fillColor: Colors.grey,
                         child: Icon(Icons.send),
                         shape: CircleBorder(),
-
                         padding: EdgeInsets.all(10.0),
                         // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       )

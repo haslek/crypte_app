@@ -264,6 +264,7 @@ class Room{
   final String roomId;
   final String roomName;
   final String roomType;
+
   Room({this.roomId,this.roomType,this.roomName,this.isNew,this.messages});
 
   List<RoomMessages> messages = [];
@@ -276,7 +277,9 @@ class Room{
     return Room(
       roomId: json['id'].toString(),
       roomType: json['is_group'].toString(),
-      roomName: json['group_name'].toString()
+      roomName: json['group_name'].toString(),
+      messages: json['messages']==null?[]:json['messages'],
+      isNew: json['is_new']==null?false:true
     );
   }
 }
@@ -317,7 +320,7 @@ class SocketService{
     this.socket = IO.io("http://192.168.43.159:2020",OptionBuilder().setTransports(['websocket']).build());
     this.socket.onConnect((_){
       this.socket.emitWithAck('online',jsonEncode({"id":user.gUserId}),ack: (data){
-        print(data);
+
       });
       print("Connected "+this.user.gUserId);
     });
@@ -328,22 +331,22 @@ class SocketService{
       };
       this.addResponse(data);
     });
-    this.socket.on('your rooms',(data){
+    this.socket.on('your rooms',(dat){
       print("emitted");
-      print(data);
-      data = {
+      print(dat);
+      Map<String,dynamic> data = {
         "type": "your rooms",
-        "data":data
+        "data":List<Room>.from(jsonDecode(dat).map((datum)=>Room.fromJson(datum))),
       };
       this.addResponse(data);
     });
-    this.socket.on('your rooms',(data){
-      data = {
-        "type": "room",
-        "data":data
-      };
-      this.addResponse(data);
-    });
+    // this.socket.on('your rooms',(data){
+    //   data = {
+    //     "type": "room",
+    //     "data":data
+    //   };
+    //   this.addResponse(data);
+    // });
     this.socket.on('online',(data){
       data = {
         "type": "online",
