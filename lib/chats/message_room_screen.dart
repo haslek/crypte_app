@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 class MessageRoomScreen extends StatefulWidget {
+  MessageRoomScreen({Key key,@required this.room}) : super(key: key);
+  final Room room;
 
   @override
   _MessageRoomScreenState createState() => _MessageRoomScreenState();

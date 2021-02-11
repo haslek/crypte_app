@@ -1,6 +1,8 @@
 import 'package:cryptem_app/auth/login.dart';
+import 'package:cryptem_app/util_widget/c_alert_dialogs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils.dart';
 
@@ -256,26 +258,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               )
                           );
                           Map<String,dynamic> lCred = {"email":email,"password":password,"phone":phone,
-                            "first_name":firstName,"last_name":lastName,"designation":designation};
+                            "first_name":firstName,"last_name":lastName,"designation":designation,"display_name":displayName};
+                          print(displayName);
 
                           Response loginResponse = await postCalls("signup",lCred);
                           if(loginResponse.status == Status.ERROR){
                             Navigator.pop(context);
-                            showDialog(
-                                context: context,
-                                child: AlertDialog(
-                                  content: Text(
-                                      loginResponse.message == null?"Unknown error occurred":loginResponse.message
-                                  ),
-                                  actions: [
-                                    FlatButton(onPressed: (){
-                                      Navigator.pop(context);
-                                    }, child: Text("Dismiss"))
-                                  ],
-                                )
-                            );
+                            await showFailureDialog(loginResponse.message,context);
                           }else{
                             Navigator.pop(context);
+                            Map<String,dynamic> data = loginResponse.data;
+                            await showSuccessDialog(loginResponse.message, context);
+                            final prefs = await SharedPreferences.getInstance();
+                            prefs.setString("pKey", data["key"]);
                             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen()));
                           }
                         }

@@ -3,6 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
+
+import '../utils.dart';
 class MessageDashboardScreen extends StatefulWidget {
   @override
   _MessageDashboardScreenState createState() => _MessageDashboardScreenState();
@@ -10,6 +13,14 @@ class MessageDashboardScreen extends StatefulWidget {
 
 class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
   final items = List<String>.generate(8, (index) => "$index");
+  SocketService socketService = GetIt.instance<SocketService>();
+  List<Room> userRooms = [];
+
+  @override
+  void initState(){
+    super.initState();
+    socketService.connectAndListen();
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -83,37 +94,48 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
               flex: 20,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(1, 10, 1, 1),
-                    child: ListView.builder(
-                      itemCount: items.length + 8,
-                      itemBuilder: (context,index){
-                        return InkWell(
-                          onTap: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageRoomScreen()),);
-                          },
-                          child: PhysicalModel(
-                            shape: BoxShape.rectangle,
-                            color: Colors.white60,
-                            elevation: 3.0,
-                            shadowColor: Colors.black,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                // border: Border.all(color: Colors.black12,width: 2.0),
-                                borderRadius: BorderRadius.circular(10)
-                              ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: Colors.black26,
+                    child: StreamBuilder<Map<String,dynamic>>(
+                      stream: socketService.getResponse,
+                      builder: (context, snapshot) {
+                        if(snapshot.hasData){
+                          Map<String,dynamic> data = snapshot.data;
+                          if(data['type'] == "your rooms"){
+                            print(data['data']);
+                          }
+                        }
+                        return ListView.builder(
+                          itemCount: userRooms.length,
+                          itemBuilder: (context,index){
+                            return InkWell(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: userRooms[index],)),);
+                              },
+                              child: PhysicalModel(
+                                shape: BoxShape.rectangle,
+                                color: Colors.white60,
+                                elevation: 3.0,
+                                shadowColor: Colors.black,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    // border: Border.all(color: Colors.black12,width: 2.0),
+                                    borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      radius: 60,
+                                      backgroundColor: Colors.black26,
+                                    ),
+                                    trailing: Text("$index"),
+                                    title: Text("My name$index"),
+                                    subtitle: Text("07090909090"),
+                                  ),
                                 ),
-                                trailing: Text("$index"),
-                                title: Text("My name$index"),
-                                subtitle: Text("07090909090"),
                               ),
-                            ),
-                          ),
-                        );
+                            );
+                          }
+                  );
                       }
-                  ),
+                    ),
               )
             )
           ],

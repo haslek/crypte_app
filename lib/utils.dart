@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:get_it/get_it.dart';
 import "package:socket_io_client/socket_io_client.dart";
 import "package:socket_io_client/socket_io_client.dart" as IO;
 import 'package:http/http.dart' as http;
@@ -42,8 +43,14 @@ class ApiProvider {
   }
 
   dynamic _response(http.Response response) {
-    var responseJson = json.decode(response.body.toString());
-    print(responseJson);
+    var responseJson;
+    try {
+      responseJson = json.decode(response.body.toString());
+      print(responseJson);
+    } on Exception catch (e) {
+      // TODO
+      return "Malformed data in response body";
+    }
     switch (response.statusCode) {
       case 200:
 
@@ -169,7 +176,7 @@ class User{
    void fromJson(Map<String,dynamic> json){
      _email = json['email'].toString();
      _phone = json['phone'].toString();
-     _userId = json['user_id'].toString();
+     _userId = json['id'].toString();
      _lastName = json['last_name'].toString();
      _firstName = json['first_name'].toString();
      _otp = json['otp'].toString();
@@ -226,14 +233,79 @@ class User{
     _otp = value;
   }
 }
+class RoomMessages{
+  final String messageId;
+  final String message;
+  final String senderId;
+  final String createdAt;
+  bool isReply;
+  final String groupId;
+  final String replyTo;
+
+  RoomMessages({this.message,this.groupId,this.senderId,this.isReply,this.messageId,this.replyTo,this.createdAt});
+
+  bool hasFile = false;
+  bool visible = true;
+  bool deleted = false;
+
+  factory RoomMessages.fromJson(Map<String,dynamic> json){
+    return RoomMessages(
+      message: json['message'].toString(),
+      messageId: json['id'].toString(),
+      senderId: json['user_id'].toString(),
+      groupId: json['group_id'].toString(),
+      replyTo: json['replied_to'],
+      isReply: json['replied_to']!=null,
+      createdAt: json['created_at'].toString()
+    );
+  }
+}
+class Room{
+  final String roomId;
+  final String roomName;
+  final String roomType;
+  Room({this.roomId,this.roomType,this.roomName,this.isNew,this.messages});
+
+  List<RoomMessages> messages = [];
+  bool isNew = false;
+  void addMessage(RoomMessages message){
+    messages.add(message);
+  }
+
+  factory Room.fromJson(Map<String,dynamic> json){
+    return Room(
+      roomId: json['id'].toString(),
+      roomType: json['is_group'].toString(),
+      roomName: json['group_name'].toString()
+    );
+  }
+}
+class ChatMates{
+  final String displayName;
+  final String firstName;
+  final String lastName;
+  final String publicKey;
+  final String userId;
+
+  ChatMates({this.displayName,this.firstName,this.lastName,this.userId,this.publicKey});
+  factory ChatMates.fromJson(Map<String,dynamic> json){
+    return ChatMates(
+      displayName: json['display_name'].toString(),
+      lastName: json['last_name'].toString(),
+      firstName: json['first_name'].toString(),
+      userId: json['user_id'].toString(),
+      publicKey: json['p_key'].toString()
+    );
+  }
+}
 
 class SocketService{
-  final _socketResponse = StreamController<String>();
+  final _socketResponse = StreamController<Map<String,dynamic>>.broadcast();
+  // final _roomEvents = StreamController<Map>();
+  final user = GetIt.I<User>();
   IO.Socket socket;
-  void Function(String) get addResponse => _socketResponse.sink.add;
-
-  Stream<String> get getResponse => _socketResponse.stream;
-
+  void Function(Map<String,dynamic>) get addResponse => _socketResponse.sink.add;
+  Stream<Map<String,dynamic>> get getResponse => _socketResponse.stream;
   void dispose(){
     _socketResponse.close();
   }
@@ -241,12 +313,44 @@ class SocketService{
     "user_id":""
   };
   void connectAndListen(){
-    this.socket = IO.io("http://localhost:3000",OptionBuilder().setTransports(['websocket']).build());
+
+    this.socket = IO.io("http://192.168.43.159:2020",OptionBuilder().setTransports(['websocket']).build());
     this.socket.onConnect((_){
-      print("Connected");
-      this.socket.emit("online",);
+      this.socket.emitWithAck('online',jsonEncode({"id":user.gUserId}),ack: (data){
+        print(data);
+      });
+      print("Connected "+this.user.gUserId);
     });
-    this.socket.on('new message',(data)=>this.addResponse);
+    this.socket.on('new message',(data){
+      data = {
+        "type": "room_message",
+        "data":data
+      };
+      this.addResponse(data);
+    });
+    this.socket.on('your rooms',(data){
+      print("emitted");
+      print(data);
+      data = {
+        "type": "your rooms",
+        "data":data
+      };
+      this.addResponse(data);
+    });
+    this.socket.on('your rooms',(data){
+      data = {
+        "type": "room",
+        "data":data
+      };
+      this.addResponse(data);
+    });
+    this.socket.on('online',(data){
+      data = {
+        "type": "online",
+        "data":data
+      };
+      this.addResponse(data);
+    });
     this.socket.onDisconnect((_)=>print("Disconnected"));
   }
 
