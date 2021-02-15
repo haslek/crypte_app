@@ -1,10 +1,14 @@
 import 'package:cryptem_app/auth/login.dart';
 import 'package:cryptem_app/chats/message_dashboard.dart';
 import 'package:cryptem_app/service_locator.dart';
+import 'package:cryptem_app/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
-void main() {
+void main()async {
+  WidgetsFlutterBinding.ensureInitialized();
   setUpLocator();
+  GetIt.I<DBService>().initDb();
   runApp(MyApp());
 }
 

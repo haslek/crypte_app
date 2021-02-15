@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.fromLTRB(40,8,40,8),
                     child: TextFormField(
                       validator: (value){
                         if(value.isEmpty){
@@ -46,14 +46,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         email = value;
                       },
                       decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                          prefixIcon: Icon(Icons.email_outlined),
                           hintText: "Enter Email or phone",
                       ),
                     ),
                   ),
                   Padding(
-                      padding: EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.fromLTRB(40,8,40,8),
                     child: TextFormField(
                       validator: (value){
                         if(value.isEmpty){
@@ -69,9 +69,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       obscureText: _obscureText,
                       decoration: InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                           hintText: "Enter password",
-                          suffixIcon: IconButton(
+                          prefixIcon: IconButton(
                           icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off_outlined),
                           onPressed: (){
                             setState(() {
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.fromLTRB(40,8,40,8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -96,51 +96,58 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      // Validate returns true if the form is valid, otherwise false.
-                      if (_formKey.currentState.validate()) {
-                        _formKey.currentState.save();
-                        showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            child: AlertDialog(
-                              content: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text("processing"),
-                                  CircularProgressIndicator()
-                                ],
-                              ),
-                            )
-                        );
-                        Map<String,dynamic> lCred = {"email":email,"password":password};
-
-                        Response loginResponse = await postCalls("login",lCred);
-                        if(loginResponse.status == Status.ERROR){
-                          Navigator.pop(context);
+                  Material(
+                    elevation: 5.0,
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: MaterialButton(
+                      padding: const EdgeInsets.fromLTRB(40,8,40,8),
+                      minWidth: MediaQuery.of(context).size.width-80,
+                      onPressed: () async {
+                        // Validate returns true if the form is valid, otherwise false.
+                        if (_formKey.currentState.validate()) {
+                          _formKey.currentState.save();
                           showDialog(
                               context: context,
+                              barrierDismissible: false,
                               child: AlertDialog(
-                                content: Text(
-                                  loginResponse.message == null?"Unknown error occurred":loginResponse.message
+                                content: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text("processing"),
+                                    CircularProgressIndicator()
+                                  ],
                                 ),
-                                actions: [
-                                  FlatButton(onPressed: (){
-                                    Navigator.pop(context);
-                                  }, child: Text("Dismiss"))
-                                ],
                               )
                           );
-                        }else{
-                          Navigator.pop(context);
-                          GetIt.I<User>().fromJson(loginResponse.data['user']);
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Otp()));
+                          Map<String,dynamic> lCred = {"email":email,"password":password};
+
+                          Response loginResponse = await postCalls("login",lCred);
+                          if(loginResponse.status == Status.ERROR){
+                            Navigator.pop(context);
+                            showDialog(
+                                context: context,
+                                child: AlertDialog(
+                                  content: Text(
+                                    loginResponse.message == null?"Unknown error occurred":loginResponse.message
+                                  ),
+                                  actions: [
+                                    FlatButton(onPressed: (){
+                                      Navigator.pop(context);
+                                    }, child: Text("Dismiss"))
+                                  ],
+                                )
+                            );
+                          }else{
+                            Navigator.pop(context);
+                            GetIt.I<User>().fromJson(loginResponse.data['user']);
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Otp()));
+                          }
                         }
-                      }
-                    },
-                    child: Text('Submit'),
+                      },
+                      child: Text('Submit'),
+                    ),
                   )
 
         ],

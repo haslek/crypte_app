@@ -260,8 +260,7 @@ class _OtpState extends State<Otp> with SingleTickerProviderStateMixin {
                         color: Colors.black,
                       ),
                       onPressed: () {
-
-                        var uOtp = user.gDisplayName;
+                        var uOtp = user.gOtp;
                         if(otp == uOtp){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageDashboardScreen()));
                         }
@@ -394,12 +393,11 @@ class _OtpState extends State<Otp> with SingleTickerProviderStateMixin {
       } else if (_fourthDigit == null) {
         _fourthDigit = _currentDigit;
 
-        var otp = _firstDigit.toString() +
+        otp = _firstDigit.toString() +
             _secondDigit.toString() +
             _thirdDigit.toString() +
             _fourthDigit.toString();
 
-        // Verify your otp by here. API call
       }
     });
   }

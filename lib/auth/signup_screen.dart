@@ -28,217 +28,217 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: SafeArea(
           child: SingleChildScrollView(
-            child: Center(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          designation = value;
-                        },
-                        onSaved: (value){
-                          designation = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Mr, Mrs ....",
-                        ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40,10,40,10.0),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        designation = value;
+                      },
+                      onSaved: (value){
+                        designation = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        hintText: "Mr, Mrs ....",
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          firstName = value;
-                        },
-                        onSaved: (value){
-                          firstName = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.person),
-                          hintText: "Enter first name",
-                        ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40,10,40,10.0),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        firstName = value;
+                      },
+                      onSaved: (value){
+                        firstName = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        suffixIcon: Icon(Icons.person),
+                        hintText: "Enter first name",
                       ),
                     ),
-                    
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          lastName = value;
-                        },
-                        onSaved: (value){
-                          lastName = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.person),
-                          hintText: "Enter last name",
-                        ),
+                  ),
+
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40,10,40,10.0),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        lastName = value;
+                      },
+                      onSaved: (value){
+                        lastName = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        suffixIcon: Icon(Icons.person),
+                        hintText: "Enter last name",
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          displayName = value;
-                        },
-                        onSaved: (value){
-                          displayName = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Enter display name",
-                        ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40.0,10,40,10),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        displayName = value;
+                      },
+                      onSaved: (value){
+                        displayName = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        hintText: "Enter display name",
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          phone = value;
-                        },
-                        onSaved: (value){
-                          phone = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.phone),
-                          hintText: "Enter phone",
-                        ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40.0,10,40,10),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        phone = value;
+                      },
+                      onSaved: (value){
+                        phone = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        suffixIcon: Icon(Icons.phone),
+                        hintText: "Enter phone",
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          email = value;
-                        },
-                        onSaved: (value){
-                          email = value;
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.email_outlined),
-                          hintText: "Enter Email",
-                        ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40.0,10,40,10),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        email = value;
+                      },
+                      onSaved: (value){
+                        email = value;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                        suffixIcon: Icon(Icons.email_outlined),
+                        hintText: "Enter Email",
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty){
-                            return "This field is required";
-                          }
-                          return null;
-                        },
-                        onChanged: (value){
-                          password = value;
-                        },
-                        onSaved: (value){
-                          password = value;
-                        },
-                        obscureText: _obscureText,
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Enter password",
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off_outlined),
-                              onPressed: (){
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            )
-                        ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40.0,10,40,10),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "This field is required";
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        password = value;
+                      },
+                      onSaved: (value){
+                        password = value;
+                      },
+                      obscureText: _obscureText,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                          hintText: "Enter password",
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off_outlined),
+                            onPressed: (){
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                          )
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        validator: (value){
-                          if(value.isEmpty || value!= password){
-                            return "This field value must be equal to th password field value";
-                          }
-                          return null;
-                        },
-                        obscureText: _cObscureText,
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Confirm password",
-                            suffixIcon: IconButton(
-                              icon: Icon(_cObscureText ? Icons.visibility : Icons.visibility_off_outlined),
-                              onPressed: (){
-                                setState(() {
-                                  _cObscureText = !_cObscureText;
-                                });
-                              },
-                            )
-                        ),
-                      ),
-                    )
-                    ,
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Already have account?"),
-                          FlatButton(onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
-                          }, child: Text("Login",style: TextStyle(decoration: TextDecoration.underline),))
-                        ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(40.0,10,40,10),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty || value!= password){
+                          return "This field value must be equal to th password field value";
+                        }
+                        return null;
+                      },
+                      obscureText: _cObscureText,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                          hintText: "Confirm password",
+                          suffixIcon: IconButton(
+                            icon: Icon(_cObscureText ? Icons.visibility : Icons.visibility_off_outlined),
+                            onPressed: (){
+                              setState(() {
+                                _cObscureText = !_cObscureText;
+                              });
+                            },
+                          )
                       ),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.teal,
-                        onPrimary: Colors.white,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-                      ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(40,8,40,8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Already have account?"),
+                        FlatButton(onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
+                        },
+                            child: Text("Login",style: TextStyle(decoration: TextDecoration.underline),))
+                      ],
+                    ),
+                  ),
+                  Material(
+                    elevation: 5.0,
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: MaterialButton(
+                      padding: const EdgeInsets.fromLTRB(40,8,40,8),
+                      minWidth: MediaQuery.of(context).size.width-80,
                       onPressed: () async {
                         // Validate returns true if the form is valid, otherwise false.
                         if (_formKey.currentState.validate()) {
@@ -275,11 +275,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           }
                         }
                       },
-                      child: Text('Submit'),
-                    )
+                      child: Text('Submit',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                    ),
+                  )
 
-                  ],
-                ),
+                ],
               ),
             ),
           )),

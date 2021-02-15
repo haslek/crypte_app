@@ -1,4 +1,5 @@
 import 'package:cryptem_app/chats/message_room_screen.dart';
+import 'package:cryptem_app/chats/search_friend_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -13,14 +14,18 @@ class MessageDashboardScreen extends StatefulWidget {
 
 class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
   final items = List<String>.generate(8, (index) => "$index");
+  User user = GetIt.I<User>();
   SocketService socketService = GetIt.instance<SocketService>();
-  List<Room> userRooms = [];
+  DBService dbService = GetIt.I<DBService>();
+  Set<Room> userRooms = Set();
 
   @override
   void initState(){
     super.initState();
+    socketService.getInitialRooms();
     socketService.connectAndListen();
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -29,30 +34,34 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(80.0),
           child: AppBar(
-            centerTitle: true,
-            title: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.amberAccent,
-                radius: 60.0,
-              ),
-              trailing: FaIcon(FontAwesomeIcons.ellipsisV),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(padding: EdgeInsets.only(left: 10),
-                    child: Text("My name"),
+            // centerTitle: true,
+            actions: [
+              IconButton(icon: Icon(Icons.cleaning_services),
+                onPressed: (){
+                  socketService.clearDb();
+                },
+                tooltip: "Clears all your chats and contacts. use wit caution",
+              ), Flexible(
+                child: IconButton(icon: FaIcon(FontAwesomeIcons.search,color: Colors.white10,),onPressed: null,),
+              )
+            ],
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.amberAccent,
+                    radius: 20.0,
                   ),
-                  Container(
-                    padding: EdgeInsets.all(2.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(width: 2.0,color: Colors.orangeAccent)
-                    ),
-                    child: FaIcon(FontAwesomeIcons.search,color: Colors.white10,),
-                  )
-                ],
-              ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.zero,
+                    child: Text(user.gDisplayName== null?"Welcome":user.gDisplayName),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -99,16 +108,19 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                       builder: (context, snapshot) {
                         if(snapshot.hasData){
                           Map<String,dynamic> data = snapshot.data;
-                          if(data['type'] == "your rooms"){
-                            userRooms.addAll(data['data']);
+                          if(data['type']== "your rooms"){
+                            Set<Room> newRooms = Set.from(data['rooms']);
+                            newRooms.forEach((room) {dbService.createRoom(room);});
+                            userRooms.addAll(newRooms);
                           }
                         }
+                        List<Room> builderList = userRooms.toList();
                         return ListView.builder(
-                          itemCount: userRooms.length,
+                          itemCount: builderList.length,
                           itemBuilder: (context,index){
                             return InkWell(
                               onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: userRooms[index],)),);
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: builderList[index],)),);
                               },
                               child: PhysicalModel(
                                 shape: BoxShape.rectangle,
@@ -125,9 +137,9 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                                       radius: 60,
                                       backgroundColor: Colors.black26,
                                     ),
-                                    trailing: Text(userRooms[index].roomType),
-                                    title: Text(userRooms[index].roomName),
-                                    subtitle: Text(userRooms[index].roomType),
+                                    trailing: Text(builderList[index].roomType),
+                                    title: Text(builderList[index].roomName),
+                                    subtitle: Text(builderList[index].roomType),
                                   ),
                                 ),
                               ),
@@ -143,7 +155,7 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
         floatingActionButton: FloatingActionButton(
           child: FaIcon(FontAwesomeIcons.commentMedical),
           onPressed: (){
-
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>RequestChatScreen()));
           },
         ),
       ),
