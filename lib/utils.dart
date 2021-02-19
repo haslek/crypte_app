@@ -505,7 +505,7 @@ class SocketService{
   // final _roomEvents = StreamController<Map>();
   final user = GetIt.I<User>();
   final dbService = GetIt.I<DBService>();
-  IO.Socket socket;
+  IO.Socket socket ;
   void Function(Map<String,dynamic>) get addResponse => _socketResponse.sink.add;
   Stream<Map<String,dynamic>> get getResponse => _socketResponse.stream;
   void dispose(){
@@ -546,6 +546,9 @@ class SocketService{
     this.socket.emitWithAck(eventName,jsonEncode(data));
   }
   void connectAndListen(){
+    if(this.socket != null){
+      return;
+    }
     this.socket = IO.io("http://192.168.43.159:2020",OptionBuilder().setTransports(['websocket']).build());
     this.socket.onConnect((_){
       this.socket.emit('online', jsonEncode({"id":user.gUserId}));
@@ -558,14 +561,15 @@ class SocketService{
     });
     this.socket.on('new message',(data) async{
       Map<String,dynamic> message = jsonDecode(data);
-      print("new message");
-      print(message);
+      print("new message "+message['message']["id"].toString());
+      // print(message);
+
       Set<RoomMessages> rMessage = Set();
       RoomMessages dMessage = RoomMessages.fromJson(message['message']);
       await dbService.createRoomMessage(dMessage);
       rMessage.add(dMessage);
       // print(rMessage);
-      print(dMessage.toMap());
+      // print(dMessage.toMap());
       data = {
         "type": "room messages",
         "room": message["group_id"],

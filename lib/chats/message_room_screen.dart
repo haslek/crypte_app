@@ -34,11 +34,19 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
   ScrollController _scrollController = new ScrollController();
 
   @override
+  void dispose(){
+    // Navigator.pushReplacementNamed(navKey.currentContext, '/message_dash');
+    super.dispose();
+  }
+  @override
   void initState(){
     super.initState();
     setRoomUp();
     print("setting up");
-    socketService.getInitialRoomMessages(int.parse(widget.room.roomId));
+    if(rMessages.isEmpty){
+      socketService.getInitialRoomMessages(int.parse(widget.room.roomId));
+    }
+
   }
   Future<void> setRoomUp()async{
     String privKey;
@@ -47,7 +55,6 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
     }else{
       privKey = widget.room.privateKey;
     }
-    // print("private key: "+privKey);
     final privateKey = parser.parse(privKey);
     Set<ChatMates> roomMembers = await dbService.getRoomMembers(int.parse(widget.room.roomId));
     setState(() {
@@ -93,128 +100,123 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
       "group_id":widget.room.roomId});
     iJustTyped = true;
   }
+
   
   @override
   Widget build(BuildContext context) {
-    // if (!roomSet) {
-    //   setRoomUp();
-    // }
     return WillPopScope(
-      onWillPop: ()=> Navigator.popAndPushNamed(context, "/message_dash"),
-      child: Container(
-        padding: EdgeInsets.all(8.0),
-        child: Scaffold(
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(100),
-            child: AppBar(
-              centerTitle: true,
-              title: Text(displayName==null?"Welcome ":displayName),
-              // flexibleSpace: ,
-            ),
+      onWillPop: ()async{
+        Navigator.pushReplacementNamed(context, '/message_dash');
+        return true;
+      },
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(100),
+          child: AppBar(
+            centerTitle: true,
+            title: Text(displayName==null?"Welcome ":displayName),
+
           ),
-          body: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: StreamBuilder<Map<String,dynamic>>(
-                    stream: socketService.getResponse,
-                    builder: (context, snapshot) {
-                      if(snapshot.hasData){
-                        print("I got data");
-                        Map<String,dynamic> data = snapshot.data;
-                        print(data);
-                        if(data['type'] == "room messages" && data['room'] == widget.room.roomId){
-                          Set<RoomMessages> newMessages = Set.from(data['messages']);
-                          // rMessages.addAll(newMessages);
-                          newMessages.forEach((roomMessage) {
-                            rMessages.insert(0, roomMessage);
-                            // dbService.createRoomMessage(roomMessage);
-                          });
-                        }
+        ),
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: StreamBuilder<Map<String,dynamic>>(
+                  stream: socketService.getResponse,
+                  builder: (context, snapshot) {
+                    if(snapshot.hasData){
+                      Map<String,dynamic> data = snapshot.data;
+                      if(data['type'] == "room messages" && data['room'] == widget.room.roomId){
+                        Set<RoomMessages> newMessages = Set.from(data['messages']);
+
+                        newMessages.forEach((roomMessage) {
+                          rMessages.insert(0, roomMessage);
+                          // dbService.createRoomMessage(roomMessage);
+                        });
                       }
-                      // List<RoomMessages> builderList = rMessages.toList();
-                      return ListView.builder(
-                        itemCount: rMessages.length,
-                        shrinkWrap: true,
-                        reverse: true,
-                        controller: _scrollController,
-                        padding: EdgeInsets.only(top: 10,bottom: 10),
-                        itemBuilder: (context,index){
-                          return Container(
-                            padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
-                              child: Align(
-                                alignment: rMessages[index].senderId != user.gUserId?Alignment.topLeft:Alignment.topRight,
-                                  child: Container(
-                                    padding: EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: rMessages[index].senderId != user.gUserId?Colors.grey.shade200:Colors.orange.shade400
-                                    ),
-                                      child: Text(decryptMessage(rMessages[index])),
-                                  ),
-                              )
-                          );
-                        },
-                      );
                     }
+                    // List<RoomMessages> builderList = rMessages.toList();
+                    return ListView.builder(
+                      itemCount: rMessages.length,
+                      shrinkWrap: true,
+                      reverse: true,
+                      controller: _scrollController,
+                      padding: EdgeInsets.only(top: 10,bottom: 10),
+                      itemBuilder: (context,index){
+                        return Container(
+                          padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
+                            child: Align(
+                              alignment: rMessages[index].senderId != user.gUserId?Alignment.topLeft:Alignment.topRight,
+                                child: Container(
+                                  padding: EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: rMessages[index].senderId != user.gUserId?Colors.grey.shade200:Colors.orange.shade400
+                                  ),
+                                    child: Text(decryptMessage(rMessages[index])),
+                                ),
+                            )
+                        );
+                      },
+                    );
+                  }
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(child: TextField(
+                        controller: _textController,
+                        maxLines: 10,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                          hintText: "Type your message..",
+                          border: OutlineInputBorder(),
+                          suffixIcon: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                  icon: Icon(Icons.camera_alt_outlined),
+                                onPressed: (){
+
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.attach_file),
+                                onPressed: (){
+
+                                },
+                              ),
+                            ],
+                          )
+                        ),
+                      )),
+                      RawMaterialButton(
+                        onPressed: () async{
+                          if (_textController.text != '') {
+                            await sendMessage(_textController.text);
+                              _textController.text = '';
+                          }
+                        },
+                        elevation: 2.0,
+                        fillColor: Colors.grey,
+                        child: Icon(Icons.send),
+                        shape: CircleBorder(),
+                        padding: EdgeInsets.all(10.0),
+                        // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      )
+                    ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(child: TextField(
-                          controller: _textController,
-                          maxLines: 10,
-                          minLines: 1,
-                          decoration: InputDecoration(
-                            hintText: "Type your message..",
-                            border: OutlineInputBorder(),
-                            suffixIcon: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                    icon: Icon(Icons.camera_alt_outlined),
-                                  onPressed: (){
-
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.attach_file),
-                                  onPressed: (){
-
-                                  },
-                                ),
-                              ],
-                            )
-                          ),
-                        )),
-                        RawMaterialButton(
-                          onPressed: () async{
-                            if (_textController.text != '') {
-                              await sendMessage(_textController.text);
-
-                                _textController.text = '';
-                            }
-                          },
-                          elevation: 2.0,
-                          fillColor: Colors.grey,
-                          child: Icon(Icons.send),
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(10.0),
-                          // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        )
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
+              )
+            ],
           ),
         ),
       ),

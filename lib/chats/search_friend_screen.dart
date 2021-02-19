@@ -76,7 +76,8 @@ class _RequestChatScreenState extends State<RequestChatScreen> {
                         Map<String,dynamic> lCred = {"cred":userInput,"sender":user.gUserId};
                         var existingRoom = await dbService.getRoomFromPhone(userInput);
                         if(existingRoom is Room){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: existingRoom)));
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: existingRoom)));
+                          // Navigator.popAndPushNamed(context, '/message_room',arguments: ex)
                         }
                         Response loginResponse = await postCalls("searchFriend",lCred,token: user.gAccessToken);
                         if(loginResponse.status == Status.ERROR){
@@ -105,7 +106,8 @@ class _RequestChatScreenState extends State<RequestChatScreen> {
                           await dbService.createRoom(nRoom);
                           await dbService.addRoomMember(chatM, int.parse(nRoom.roomId));
                           socketService.emitEvent("chat request",{"sent_to":chatM.email,"sender":userToChatMate(),"room":nRoom.toMap()});
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: nRoom)));
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: nRoom)));
+                          // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MessageRoomScreen(room: nRoom)));
                         }
                       }
                     },
