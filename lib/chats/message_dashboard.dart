@@ -40,7 +40,7 @@ class _MessageDashboardScreenState extends State<MessageDashboardScreen> {
                 onPressed: (){
                   socketService.clearDb();
                 },
-                tooltip: "Clears all your chats and contacts. use wit caution",
+                tooltip: "Clears all your chats and contacts. use with caution",
               ), Flexible(
                 child: IconButton(icon: FaIcon(FontAwesomeIcons.search,color: Colors.white10,),onPressed: null,),
               )

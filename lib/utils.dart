@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import "package:socket_io_client/socket_io_client.dart";
 import "package:socket_io_client/socket_io_client.dart" as IO;
 import 'package:http/http.dart' as http;
@@ -30,7 +31,6 @@ class ApiProvider {
   }
   Future<dynamic> post(String url, Map<String,dynamic> data, {String token}) async {
     var responseJson;
-    print(token);
     Map<String,String> headers = {
       HttpHeaders.contentTypeHeader:"application/json",
     };
@@ -48,10 +48,9 @@ class ApiProvider {
 
   dynamic _response(http.Response response) {
     var responseJson;
-    print(responseJson);
     try {
       responseJson = json.decode(response.body.toString());
-      print(responseJson);
+      // print(responseJson);
     } on Exception catch (e) {
       // TODO
       return "Malformed data in response body";
@@ -197,6 +196,8 @@ class User{
    // ignore: unnecessary_getters_setters
    String get gUserId => _userId;
 
+   String get gPubKey => _publicKey;
+
   // ignore: unnecessary_getters_setters
   set userId(String value) {
     _userId = value;
@@ -266,6 +267,14 @@ class RoomMessages{
       "created_at":createdAt
     };
   }
+  Map<String,dynamic> toiMap(){
+    return {
+      "message":message,
+      "user_id":senderId,
+      "group_id":groupId,
+      "reply_to":replyTo,
+    };
+  }
 
   factory RoomMessages.fromJson(Map<String,dynamic> json){
     return RoomMessages(
@@ -284,10 +293,10 @@ class DBService{
   void initDb() async{
     this.database = openDatabase( join(await getDatabasesPath(),'cryptDb.db'),
       onCreate: (db,version) async{
-        await db.execute("CREATE TABLE IF NOT EXISTS room (roomId INTEGER,roomName VARCHAR(30),roomType VARCHAR(30),display_name VARCHAR(30),lastMessage INTEGER,UNIQUE(roomId))");
+        await db.execute("CREATE TABLE IF NOT EXISTS room (roomId INTEGER,roomName VARCHAR(30),roomType VARCHAR(30),display_name VARCHAR(30),lastMessage INTEGER,public_key TEXT,UNIQUE(roomId))");
         await db.execute("CREATE TABLE IF NOT EXISTS room_messages (messageId INTEGER,message TEXT,senderId INTEGER,groupId INTEGER,reply_to INTEGER,created_at VARCHAR(20),UNIQUE(messageId))");
-        await db.execute("CREATE TABLE IF NOT EXISTS chat_mates (user_Id INTEGER,display_name TEXT,first_name VARCHAR(30),last_name VARCHAR(30),phone VARCHAR(30),email VARCHAR(30),public_key TEXT,UNIQUE(user_id))");
-        await db.execute("CREATE TABLE IF NOT EXISTS room_members (user_Id INTEGER,room_id INTEGER,UNIQUE(user_id,room_id))");
+        await db.execute("CREATE TABLE IF NOT EXISTS chat_mates (user_Id INTEGER,display_name TEXT,first_name VARCHAR(30),last_name VARCHAR(30),phone VARCHAR(30),email VARCHAR(30),public_key TEXT NOT NULL,UNIQUE(user_Id))");
+        await db.execute("CREATE TABLE IF NOT EXISTS room_members (user_Id INTEGER,room_id INTEGER,UNIQUE(user_Id,room_id))");
       },
       version: 1,
     );
@@ -308,12 +317,15 @@ class DBService{
     Database db = await this.database;
     await db.insert("room", room.toMap(),conflictAlgorithm: ConflictAlgorithm.ignore);
   }
+  Future<void> deleteDb() async{
+    await deleteDatabase(join(await getDatabasesPath(),'cryptDb.db'));
+  }
   Future<dynamic> getRoomFromPhone(String phone) async{
     Database db = await this.database;
     List<Map<String,dynamic>> chatmate = await db.query("chat_mates",whereArgs: [phone],where: "phone = ?");
     List<Map<String,dynamic>> echatmate = await db.query("chat_mates",whereArgs: [phone],where: "email = ?");
     if(chatmate.length == 1){
-      List<Map<String,dynamic>> rooms = await db.rawQuery("SELECT room.* FROM room INNER JOIN room_members ON room_members.room_id = room.roomId WHERE room_members.user_I = ?",[chatmate[0]['user_Id']]);
+      List<Map<String,dynamic>> rooms = await db.rawQuery("SELECT room.* FROM room INNER JOIN room_members ON room_members.room_id = room.roomId WHERE room_members.user_Id = ?",[chatmate[0]['user_Id']]);
       rooms.forEach((element) {if(element['group_type'] == 0){
         return Room.fromJson(element);
       }
@@ -321,7 +333,7 @@ class DBService{
       return "no room";
     }
     if(echatmate.length == 1){
-      List<Map<String,dynamic>> rooms = await db.rawQuery("SELECT room.* FROM room INNER JOIN room_members ON room_members.room_id = room.roomId WHERE room_members.user_I = ?",[echatmate[0]['user_Id']]);
+      List<Map<String,dynamic>> rooms = await db.rawQuery("SELECT room.* FROM room INNER JOIN room_members ON room_members.room_id = room.roomId WHERE room_members.user_Id = ?",[echatmate[0]['user_Id']]);
       rooms.forEach((element) {if(element['group_type'] == 0){
         return Room.fromJson(element);
       }
@@ -330,9 +342,9 @@ class DBService{
     }
     return "no record";
   }
-  Future<Set<RoomMessages>> getRoomMessages(int rid) async{
+  Future<List<RoomMessages>> getRoomMessages(int rid) async{ // changed this from returning set to returning a list
     Database db = await this.database;
-    List<Map<String,dynamic>> roomMessages = await db.query("room_messages",where: "groupId = ?",whereArgs: [rid]);
+    List<Map<String,dynamic>> roomMessages = await db.query("room_messages",where: "groupId = ?",whereArgs: [rid],orderBy: "messageId");
     return List.generate(roomMessages.length,(i){
       return RoomMessages(
           message:roomMessages[i]['message'],
@@ -340,16 +352,22 @@ class DBService{
           senderId: roomMessages[i]['senderId'].toString(),
           groupId: roomMessages[i]['groupId'].toString()
       );
-    }).toSet();
+    }).toList();
+        //.toSet();
   }
   Future<void> addRoomMember(ChatMates member,int roomId)async{
     Database db = await this.database;
+    print("chat mate stored:");
+    print(member.toMap());
+    // return;
     await db.insert("chat_mates", member.toMap(),conflictAlgorithm: ConflictAlgorithm.ignore);
     await db.insert("room_members", {"user_id":int.parse(member.userId),"room_id":roomId},conflictAlgorithm: ConflictAlgorithm.ignore);
   }
   Future<Set<ChatMates>> getRoomMembers(int rid)async{
     Database db = await this.database;
     List<Map<String,dynamic>> members = await db.rawQuery("SELECT chat_mates.* from chat_mates LEFT JOIN room_members ON room_members.user_Id = chat_mates.user_Id WHERE room_members.room_Id = ? ",[rid]);
+    // print("from db chatmates: ");
+    // print(members);
     return Set.from(members.map((e) => ChatMates.fromIJson(e)));
   }
   Future<String> deleteRoomMessages(int rid)async{
@@ -383,8 +401,10 @@ class Room{
   final String roomType;
   int lastMessage;
   String displayName;
+  String publicKey;
+  String privateKey;
 
-  Room({this.roomId,this.roomType,this.roomName,this.isNew,this.messages,this.lastMessage});
+  Room({this.roomId,this.roomType,this.roomName,this.isNew,this.messages,this.lastMessage,this.publicKey,this.displayName});
 
   List<RoomMessages> messages = [];
   bool isNew = false;
@@ -413,7 +433,8 @@ class Room{
       "roomName":roomName,
       "roomType":roomType,
       "lastMessage":lastMessage,
-      "display_name":displayName
+      "display_name":displayName,
+      "public_key":publicKey
     };
   }
   factory Room.fromJson(Map<String,dynamic> json){
@@ -422,7 +443,9 @@ class Room{
       roomType: json['is_group'].toString(),
       roomName: json['group_name'].toString(),
       messages: json['messages']==null?[]:json['messages'],
-      isNew: json['is_new']==null?false:true
+      isNew: json['is_new']==null?false:true,
+      publicKey: json['public_key'],
+      displayName: json['display_name']
     );
   }
 }
@@ -443,7 +466,9 @@ class ChatMates{
       "user_id": userId!=null ? int.parse(userId):0,
       "first_name": firstName,
       "last_name": lastName,
-      "public_Key": publicKey
+      "phone": phone,
+      "email":email,
+      "public_key": publicKey
     };
   }
   ChatMates({this.displayName,this.firstName,this.lastName,this.userId,this.publicKey,this.phone,this.email});
@@ -453,7 +478,7 @@ class ChatMates{
       lastName: json['last_name'].toString(),
       firstName: json['first_name'].toString(),
       userId: json['id'].toString(),
-      publicKey: json['p_key'].toString(),
+      publicKey: json['p_key'],
       email:  json['email'],
       phone:  json['phone'],
     );
@@ -464,7 +489,7 @@ class ChatMates{
       lastName: json['last_name'].toString(),
       firstName: json['first_name'].toString(),
       userId: json['user_Id'].toString(),
-      publicKey: json['p_key'].toString(),
+      publicKey: json['public_key'],
       email:  json['email'],
       phone:  json['phone'],
     );
@@ -487,7 +512,8 @@ class SocketService{
     _socketResponse.close();
   }
   void getInitialRoomMessages(int roomId) async{
-    Set<RoomMessages> messages = await dbService.getRoomMessages(roomId);
+    // Set<RoomMessages> messages = await dbService.getRoomMessages(roomId);
+    List<RoomMessages> messages = await dbService.getRoomMessages(roomId);
     Map<String,dynamic> data = {
       "type":"room messages",
       "room": roomId.toString(),
@@ -496,8 +522,9 @@ class SocketService{
     this.addResponse(data);
   }
   void clearDb() async{
-    await dbService.deleteAllMessages();
-    await dbService.deleteAllRooms();
+    // await dbService.deleteAllMessages();
+    // await dbService.deleteAllRooms();
+    await dbService.deleteDb();
   }
 
   void requestChat(){
@@ -516,19 +543,33 @@ class SocketService{
     "user_id":""
   };
   void emitEvent(String eventName,Map<String,dynamic> data){
-    this.socket.emit(eventName,jsonEncode(data));
+    this.socket.emitWithAck(eventName,jsonEncode(data));
   }
   void connectAndListen(){
-
     this.socket = IO.io("http://192.168.43.159:2020",OptionBuilder().setTransports(['websocket']).build());
     this.socket.onConnect((_){
-      this.socket.emitWithAck('online', jsonEncode({"id":user.gUserId}));
+      this.socket.emit('online', jsonEncode({"id":user.gUserId}));
+      // this.socket.emit("my rooms",jsonEncode({"email":user.gEmail}));
       print("connected");
     });
-    this.socket.on('new message',(data){
+    this.socket.on('connected rooms',(data){
+      // print("connected rooms:");
+      // print(jsonDecode(data));
+    });
+    this.socket.on('new message',(data) async{
+      Map<String,dynamic> message = jsonDecode(data);
+      print("new message");
+      print(message);
+      Set<RoomMessages> rMessage = Set();
+      RoomMessages dMessage = RoomMessages.fromJson(message['message']);
+      await dbService.createRoomMessage(dMessage);
+      rMessage.add(dMessage);
+      // print(rMessage);
+      print(dMessage.toMap());
       data = {
-        "type": "room_message",
-        "data":data
+        "type": "room messages",
+        "room": message["group_id"],
+        "messages":rMessage
       };
       this.addResponse(data);
     });
@@ -548,4 +589,9 @@ class SocketService{
     });
     this.socket.onDisconnect((_)=>print("Disconnected"));
   }
+}
+String getCurrentTime(){
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+  return formattedDate;
 }
